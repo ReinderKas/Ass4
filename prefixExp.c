@@ -85,7 +85,7 @@ void freeExpTree(ExpTree tr) {
  * The return value indicates whether the action is successful.
  * Observe that we use ordinary recursion, not mutual recursion.
  */
-
+int localResult = 1;
 int treePrefixExpression(List *lp, ExpTree *tp) { 
   double w;
   char *s;
@@ -93,35 +93,36 @@ int treePrefixExpression(List *lp, ExpTree *tp) {
   Token t;
   ExpTree tL, tR;
 
-  // This checks whether the input is a prefix expression or not.
+  // This while-loop will have to create an expression tree tp.
 
-
-
-
-
-
-  /* Original Code */
-  if ( valueNumber(lp,&w) ) {
-    t.number = (int)w;
-    *tp = newExpTreeNode(Number, t, NULL, NULL);
-    return 1;
-  }
-  if ( valueIdentifier(lp,&s) ) {
-    t.identifier = s;
-    *tp = newExpTreeNode(Identifier, t, NULL, NULL);
-    return 1;
-  }
-  if ( valueOperator(lp,&c) && treePrefixExpression(lp,&tL) ) {
-    if ( treePrefixExpression(lp,&tR) ) {
-      t.symbol = c;
-      *tp = newExpTreeNode(Symbol, t, tL, tR);
-      return 1;
-    } else { /* withuot 'else' the program works fine, but there is a memory leak */
-      freeExpTree(tL);
-      return 0;
+  while ((*lp)->next != NULL){
+    printList(*lp);
+    if ( valueNumber(lp,&w) ) {
+      // printf("Found Number : %d\n", (int)w);
+      t.number = (int)w;
+      *tp = newExpTreeNode(Number, t, NULL, NULL);
+    }
+    if ( valueIdentifier(lp,&s) ) {
+      t.identifier = s;
+      *tp = newExpTreeNode(Identifier, t, NULL, NULL);
+      printf("\nFound variable --> Not numerical!\n");
+      localResult = 2;
+    }
+    if (valueOperator(lp, &c)){
+      if (treePrefixExpression(lp,&tR)){
+        if (treePrefixExpression(lp, &tL)){
+          t.symbol = c;
+          *tp = newExpTreeNode(Symbol, t, tL, tR);
+        }
+      } else { /* withuot 'else' the program works fine, but there is a memory leak */
+        freeExpTree(tL);
+        return 0;
+      }
     }
   }
-  return 0;
+
+  // printf("result = %d\n", localResult);
+  return localResult;
 }
 
 /* The function printExpTreeInfix does what its name suggests.
@@ -153,7 +154,9 @@ void printExpTreeInfix(ExpTree tr) {
  */
 
 int isNumerical(ExpTree tr) {
-  assert(tr!=NULL);
+  if (tr == NULL){
+    return 0;
+  }
   if (tr->tt==Number) {
     return 1;
   }
@@ -206,8 +209,18 @@ void prefExpTrees() {
     printf("the token list is ");
     printList(tl);
     tl1 = tl;
-    if ( treePrefixExpression(&tl1,&t) && tl1 == NULL ) { 
+    printf("\n-------------Check1-------------\n");
+    int valid = treePrefixExpression(&tl1, &t);
+    tl1 = tl1->next;
+    printf("-------------Check2-------------\n");
+    printf("valid = %d", valid);
+    if ( valid > 0 && tl1 == NULL ) { 
          /* there should be no tokens left */
+      printf("\n-------------Check3-------------\n");  
+      if (valid == 2){
+        printf("\nNot numerical!\n");
+        t = NULL;
+      }
       printf("in infix notation: ");
       printExpTreeInfix(t);
       printf("\n");

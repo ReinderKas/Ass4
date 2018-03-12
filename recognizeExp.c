@@ -126,7 +126,12 @@ int acceptEquation(List *lp, List *lp1){
 
 	return 1;
 }
-
+ /* <prefexp>   ::= <number> | <identifier> | '+' <prefexp> <prefexp> | '-' <prefexp> <prefexp> | '*' <prefexp> <prefexp> | '/' <prefexp> <prefexp> 
+ * 
+ * <number>      ::= <digit> { <digit> }
+ *
+ * <identifier> ::= <letter> { <letter> | <digit> }
+	*/
 // An expression is of the following grammar: term | - term | + term
 // A term can be followed by a multiple of terms.
 int acceptExpression(List *lp) {
@@ -366,7 +371,7 @@ void evalTerm(List *lp, double *nat, double *iden, int minus){
 void recognizeEquation(){
 	char *ar;
 	int degree;
-	List tl, tl1,tl2,tl3;
+	List tl, tl1,tl2;//tl3;
 	ar = readInput();
 	printf("give an equation: ");
 	while (ar[0] != '!'){
