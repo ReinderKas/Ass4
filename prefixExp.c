@@ -10,7 +10,7 @@
  *
  * <identifier> ::= <letter> { <letter> | <digit> }
  *
- * Starting pount is the token list obtained from the scanner (in scanner.c). 
+ * Starting point is the token list obtained from the scanner (in scanner.c).
  */
 
 #include <stdio.h>  /* printf */
@@ -50,12 +50,12 @@ int valueIdentifier(List *lp, char **sp) {
 
 // acceptNumber, except that this function writes the value to wp.
 int valueNumber(List *lp, double *wp) {
-	if (*lp != NULL && (*lp)->tt == Number ) {
-		*wp = ((*lp)->t).number;
-		*lp = (*lp)->next;
-		return 1;
-	}
-	return 0;
+    if (*lp != NULL && (*lp)->tt == Number ) {
+        *wp = ((*lp)->t).number;
+        *lp = (*lp)->next;
+        return 1;
+    }
+    return 0;
 }
 
 /* The function valueOperator recognizes an arithmetic operator in a token list
@@ -118,44 +118,58 @@ void freeExpTree(ExpTree tr) {
  * <factor>     ::= <number> | <identifier> | '(' <expression> ')'
 */
 
-int acceptFactor(List *lp, ExpTree *tree){
-  double value; 
-  if (valueNumber(lp, &number)){
-    *tree = newExpTreeNode(Number, value, NULL, NULL);
-  }
-  else if ()
-
-  switch((*lp).tt){
-    case Number:
-      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
-      return 1;
-    case Identifier:
-      cha
-      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
-      return 1;
-    case Identifier:
-      cha
-
-  }
-      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
-      return 1;
-    case Identifier:
-      cha
-
-  }
-
-  }
-      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
-      return 1;
-    case Identifier:
-      cha
-
-  }
-  } else if ((*lp).tt == Number)
+int factorNode(List *lp, ExpTree *tree){
+    if((*lp) == NULL ) return 0;
+    switch((*lp)->tt) {
+      case Number:
+        *tree = newExpTreeNode(Number, (*lp)->t, NULL, NULL);
+            (*lp) = (*lp)->next;
+            return 1;
+      case Identifier:
+//        valueIdentifier(lp, &c);
+        *tree = newExpTreeNode(Identifier, (*lp)->t, NULL, NULL);
+            *lp = (*lp)->next;
+            return 1;
+      case Symbol:
+        if ((*lp)->t.symbol == '(') {
+          acceptCharacter(lp, '(') && treeInfixExpression(lp, tree) && acceptCharacter(lp, '(');
+          return 1;
+        }
+        return 0;
+    }
 
   return 0;
 }
 
+// accept factor, accept *or/, accept factor
+int termNode(List *lp, ExpTree *tree, int count){
+  ExpTree leftTree, rightTree;
+  char operator;
+  Token newToken;
+  if(count == 0) {
+    if (!factorNode(lp, &leftTree)) return 0;
+    //  add new node to tree
+    *tree = leftTree;
+  }
+
+  if(!acceptDivisionMultiplication(lp, &operator)) return (count>0);
+  if(factorNode(lp, &rightTree)){
+    newToken.symbol = operator;
+    *tree = newExpTreeNode(Symbol,newToken,*tree,rightTree);
+// check if next operator is /or*, if it is call termNode(with counter++, and tree)
+//    This check might not work properly.
+    if(isDivMultOperator(((*lp)->next->t.symbol))){
+      termNode(lp, tree, ++count);
+    }
+  } else {
+    return (count>0);
+  }
+// add node to tree
+
+  return 1;
+
+
+}
 
 int infixResult = 1;
 int treeInfixExpression(List *lp, ExpTree *tp){
@@ -164,11 +178,6 @@ int treeInfixExpression(List *lp, ExpTree *tp){
   double number;
   Token t;
   ExpTree treeLeft, treeRight;
-
-
-  
-
-
 }
 
 
