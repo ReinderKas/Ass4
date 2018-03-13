@@ -277,15 +277,6 @@ int checkDegree(List *lp){
 	return highest;	
 }
 
-int valueNumber(List *lp, double *wp) {
-	if (*lp != NULL && (*lp)->tt == Number ) {
-		*wp = ((*lp)->t).number;
-		*lp = (*lp)->next;
-		return 1;
-	}
-	return 0;
-}
-
 double almostZero(double n){
     if (n> -0.0005 && n < 0.0005){
         return 0;

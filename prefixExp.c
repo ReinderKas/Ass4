@@ -48,22 +48,44 @@ int valueIdentifier(List *lp, char **sp) {
   return 0;
 }
 
+// acceptNumber, except that this function writes the value to wp.
+int valueNumber(List *lp, double *wp) {
+	if (*lp != NULL && (*lp)->tt == Number ) {
+		*wp = ((*lp)->t).number;
+		*lp = (*lp)->next;
+		return 1;
+	}
+	return 0;
+}
+
 /* The function valueOperator recognizes an arithmetic operator in a token list
  * and makes the second parameter point to it.
  * Here the auxiliary function isOperator is used.
  */
-
-int isOperator(char c) {
-  return ( c == '+' || c == '-' || c == '*' || c == '/');
+int isDivMultOperator(char c){
+  return (c == '/' || c == '*');
 }
 
-int valueOperator(List *lp, char *cp) {
-  if (*lp != NULL && (*lp)->tt == Symbol && isOperator(((*lp)->t).symbol) ) {
+int acceptDivisionMultiplication(List *lp, char *cp){
+  if (*lp != NULL && (*lp)->tt == Symbol && isDivMultOperator(((*lp)->t).symbol) ) {
     *cp = ((*lp)->t).symbol;
     *lp = (*lp)->next;
     return 1;
   }
   return 0;
+}
+
+int isPlusMinOperator(char c){
+  return (c == '+' || c == '-');
+}
+
+int acceptAdditionSubstraction(List *lp, char *cp){
+  if (*lp != NULL && (*lp)->tt == Symbol && isPlusMinOperator(((*lp)->t).symbol) ) {
+    *cp = ((*lp)->t).symbol;
+    *lp = (*lp)->next;
+    return 1;
+  }
+  return 0;  
 }
 
 /* De functie freeExpTree frees the memory of the nodes in the expression tree.
@@ -87,7 +109,73 @@ void freeExpTree(ExpTree tr) {
  * The return value indicates whether the action is successful.
  * Observe that we use ordinary recursion, not mutual recursion.
  */
-int localResult = 1;
+
+/*  
+ * <expression>  ::= <term> { '+'  <term> | '-' <term> }
+ * 
+ * <term>       ::= <factor> { '*' <factor> | '/' <factor> }
+ *
+ * <factor>     ::= <number> | <identifier> | '(' <expression> ')'
+*/
+
+int acceptFactor(List *lp, ExpTree *tree){
+  double value; 
+  if (valueNumber(lp, &number)){
+    *tree = newExpTreeNode(Number, value, NULL, NULL);
+  }
+  else if ()
+
+  switch((*lp).tt){
+    case Number:
+      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
+      return 1;
+    case Identifier:
+      cha
+      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
+      return 1;
+    case Identifier:
+      cha
+
+  }
+      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
+      return 1;
+    case Identifier:
+      cha
+
+  }
+
+  }
+      *tree = newExpTreeNode(Number, (*lp).t, NULL, NULL);
+      return 1;
+    case Identifier:
+      cha
+
+  }
+  } else if ((*lp).tt == Number)
+
+  return 0;
+}
+
+
+int infixResult = 1;
+int treeInfixExpression(List *lp, ExpTree *tp){
+  char operator;
+  char *variable;
+  double number;
+  Token t;
+  ExpTree treeLeft, treeRight;
+
+
+  
+
+
+}
+
+
+
+
+
+int prefixResult = 1;
 int treePrefixExpression(List *lp, ExpTree *tp) { 
   double w;
   char *s;
@@ -98,8 +186,8 @@ int treePrefixExpression(List *lp, ExpTree *tp) {
   // This while-loop will have to create an expression tree tp.
 
   while (*lp != NULL){
-    // printf("Initial : ");
-    // printList(*lp);
+    printf("Initial : ");
+    printList(*lp);
     if ( valueNumber(lp,&w) ) {
       // printf("Found Number : %d\n", (int)w);
       t.number = (int)w;
@@ -109,35 +197,20 @@ int treePrefixExpression(List *lp, ExpTree *tp) {
       t.identifier = s;
       *tp = newExpTreeNode(Identifier, t, NULL, NULL);
       printf("\nFound variable --> Not numerical!\n\n");
-      localResult = 2;
+      prefixResult = 2;
     }
     else if (valueOperator(lp, &c)){ 
       if (treePrefixExpression(lp,&tR)){
         if (treePrefixExpression(lp, &tL)){
+          printf("symbol : %c\n", c);
           t.symbol = c;
           *tp = newExpTreeNode(Symbol, t, tL, tR);
         }
-      } else { /* withuot 'else' the program works fine, but there is a memory leak */
+      } else { /* without 'else' the program works fine, but there is a memory leak */
         printf("\nShould probably not get here?\n\n");
         freeExpTree(tL);
         return 0;
       }
-
-      /* tp is now an expressionTree. 
-       * 
-       * Example: (2 + 3 * 4 - 5 / 6)
-       * 
-       * Last iteration (Done recursively)
-       * Number = 6   Operator = NULL
-       * Tree : 6 on top, Left and Right NULL
-       * 
-       * 
-       * 
-       * Last iteration this tree will be 6 on top, Left and Right will be NULL.
-       * After returning (since it's done recursively) the number is 5
-       * 
-       */
-
     } 
   }
   printf("\n");
@@ -145,8 +218,8 @@ int treePrefixExpression(List *lp, ExpTree *tp) {
   printf("\n");
   printf("Number   when returned : %d\n", (int)w);
   printf("Operator when returned : %c\n", c);
-  //printf("Returned %d\n\n", localResult);
-  return localResult;
+  //printf("Returned %d\n\n", prefixResult);
+  return prefixResult;
 }
 
 /* The function printExpTreeInfix does what its name suggests.
