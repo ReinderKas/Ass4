@@ -76,6 +76,7 @@ int acceptDivisionMultiplication(List *lp, char *cp){
 }
 
 int isPlusMinOperator(char c){
+  // printf("\nEvaluated %c\n", c);
   return (c == '+' || c == '-');
 }
 
@@ -132,8 +133,8 @@ int factorNode(List *lp, ExpTree *tree){
             return 1;
       case Symbol:
         if ((*lp)->t.symbol == '(') {
-          acceptCharacter(lp, '(') && treeInfixExpression(lp, tree) && acceptCharacter(lp, '(');
-          return 1;
+          if (acceptCharacter(lp, '(') && expressionNode(lp, tree, 0) && acceptCharacter(lp, ')'));
+            return 1;
         }
         return 0;
     }
@@ -146,89 +147,85 @@ int termNode(List *lp, ExpTree *tree, int count){
   ExpTree leftTree, rightTree;
   char operator;
   Token newToken;
+
+  if(count == -1){
+    leftTree = *tree;
+    // *tree = leftTree;
+    // printf("count -1");
+    // printExpTreeInfix(*tree);
+    // printf("\n");
+    count = 1;
+  }
+
   if(count == 0) {
     if (!factorNode(lp, &leftTree)) return 0;
     //  add new node to tree
     *tree = leftTree;
   }
 
-  if(!acceptDivisionMultiplication(lp, &operator)) return (count>0);
-  if(factorNode(lp, &rightTree)){
-    newToken.symbol = operator;
-    *tree = newExpTreeNode(Symbol,newToken,*tree,rightTree);
-// check if next operator is /or*, if it is call termNode(with counter++, and tree)
+  if(acceptDivisionMultiplication(lp, &operator)) {
+    if(factorNode(lp, &rightTree)){
+      newToken.symbol = operator;
+      *tree = newExpTreeNode(Symbol,newToken,*tree,rightTree);
+      // printf("\n");
+      // printExpTreeInfix(*tree);
+      // printf("\n\n\n\n");
+//    check if next operator is /or*, if it is call termNode(with counter++, and tree)
 //    This check might not work properly.
-    if(isDivMultOperator(((*lp)->next->t.symbol))){
-      termNode(lp, tree, ++count);
+      if(*lp != NULL && isDivMultOperator((*lp)->t.symbol)){
+        // printList(*lp);
+        termNode(lp, tree, -1);
+      }
+    } else {
+      return (count>0);
     }
-  } else {
-    return (count>0);
+  }
+  
+// add node to tree
+  return 1;
+}
+
+// accept term, accept *or/, accept factor
+int expressionNode(List *lp, ExpTree *tree, int count){
+  ExpTree leftTree, rightTree;
+  char operator;
+  Token newToken;
+
+  if(count == -1){
+    // This means that the given tree is the left portion of the new tree.
+    leftTree = *tree;
+    // *tree = leftTree;
+    // printf("count -1");
+    // printExpTreeInfix(*tree);
+    // printf("\n");
+    count = 1;
+  }
+  
+  if(count == 0) {
+    if (!termNode(lp, &leftTree, 0)) return 0;
+    //  add new node to tree
+    *tree = leftTree;
+  }
+  if(acceptAdditionSubstraction(lp, &operator)) {
+    // printList(*lp);
+    if(termNode(lp, &rightTree, 0)){
+      newToken.symbol = operator;
+      *tree = newExpTreeNode(Symbol,newToken,*tree,rightTree);
+//    check if next operator is /or*, if it is call termNode(with counter++, and tree)
+//    This check might not work properly.
+      if(*lp != NULL && isPlusMinOperator((*lp)->t.symbol)){
+        // printf("should get here\n");
+        // printList(*lp);
+        // printExpTreeInfix(*tree);
+        // printf("\n");
+        expressionNode(lp, tree, -1);
+      }
+    } else {
+      return (count>0);
+    }
   }
 // add node to tree
-
   return 1;
-
-
-}
-
-int infixResult = 1;
-int treeInfixExpression(List *lp, ExpTree *tp){
-  char operator;
-  char *variable;
-  double number;
-  Token t;
-  ExpTree treeLeft, treeRight;
-}
-
-
-
-
-
-int prefixResult = 1;
-int treePrefixExpression(List *lp, ExpTree *tp) { 
-  double w;
-  char *s;
-  char c;
-  Token t;
-  ExpTree tL, tR;
-
-  // This while-loop will have to create an expression tree tp.
-
-  while (*lp != NULL){
-    printf("Initial : ");
-    printList(*lp);
-    if ( valueNumber(lp,&w) ) {
-      // printf("Found Number : %d\n", (int)w);
-      t.number = (int)w;
-      *tp = newExpTreeNode(Number, t, NULL, NULL);
-    }
-    else if ( valueIdentifier(lp,&s) ) {
-      t.identifier = s;
-      *tp = newExpTreeNode(Identifier, t, NULL, NULL);
-      printf("\nFound variable --> Not numerical!\n\n");
-      prefixResult = 2;
-    }
-    else if (valueOperator(lp, &c)){ 
-      if (treePrefixExpression(lp,&tR)){
-        if (treePrefixExpression(lp, &tL)){
-          printf("symbol : %c\n", c);
-          t.symbol = c;
-          *tp = newExpTreeNode(Symbol, t, tL, tR);
-        }
-      } else { /* without 'else' the program works fine, but there is a memory leak */
-        printf("\nShould probably not get here?\n\n");
-        freeExpTree(tL);
-        return 0;
-      }
-    } 
-  }
-  printf("\n");
-  printExpTreeInfix(*tp);
-  printf("\n");
-  printf("Number   when returned : %d\n", (int)w);
-  printf("Operator when returned : %c\n", c);
-  //printf("Returned %d\n\n", prefixResult);
-  return prefixResult;
 }
 
 /* The function printExpTreeInfix does what its name suggests.
@@ -308,20 +305,24 @@ void prefExpTrees() {
   char *ar;
   List tl, tl1;  
   ExpTree t = NULL; 
-  printf("give a prefix expression: ");
+  printf("give an expression: ");
   ar = readInput();
   while (ar[0] != '!') {
     tl = tokenList(ar); 
-    printf("the token list is ");
+    // printf("the token list is ");
     printList(tl);
     tl1 = tl;
-    printf("\n-------------Check1-------------\n");
-    int valid = treePrefixExpression(&tl1, &t);
-    printf("-------------Check2-------------\n");
-    printf("valid = %d", valid);
+    // printf("\n-------------Check1-------------\n");
+    int valid = expressionNode(&tl1, &t, 0);
+    // printf("\n\n-------------Check2-------------\n");
+    // printf("valid = %d\n", valid);      
+    // printf("List = ");
+    // printList(tl1);
+    // printExpTreeInfix(t);
+    // printf("\n");
     if ( valid > 0 && tl1 == NULL ) { 
          /* there should be no tokens left */
-      printf("\n-------------Check3-------------\n");  
+      // printf("\n-------------Check3-------------\n");  
       if (valid == 2){
         printf("\nNot numerical!\n");
         t = NULL;
@@ -332,16 +333,16 @@ void prefExpTrees() {
       if ( isNumerical(t) ) {
         printf("the value is %g\n",valueExpTree(t));
       } else {
-        printf("this is not a numerical prefix expression\n");
+        printf("this is not a numerical expression\n");
       }
     } else {
-      printf("this is not a prefix expression\n"); 
+      printf("this is not an expression\n"); 
     }
     freeExpTree(t);
     t = NULL; 
     freeTokenList(tl);  
     free(ar);
-    printf("\ngive a prefix expression: ");
+    printf("\ngive an expression: ");
     ar = readInput();
   }
   free(ar);

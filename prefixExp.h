@@ -17,6 +17,14 @@ typedef struct ExpTreeNode {
 
 ExpTree newExpTreeNode(TokenType tt, Token t, ExpTree tL, ExpTree tR);
 int valueIdentifier(List *lp, char **sp);
+int valueNumber(List *lp, double *wp);
+int isDivMultOperator(char c);
+int acceptDivisionMultiplication(List *lp, char *cp);
+int isPlusMinOperator(char c);
+int acceptAdditionSubstraction(List *lp, char *cp);
+int factorNode(List *lp, ExpTree *tree);
+int termNode(List *lp, ExpTree *tree, int count);
+int expressionNode(List *lp, ExpTree *tree, int count);
 int isNumerical(ExpTree tr);
 double valueExpTree(ExpTree tr);
 void printExpTreeInfix(ExpTree tr);
