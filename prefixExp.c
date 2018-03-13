@@ -38,6 +38,8 @@ ExpTree newExpTreeNode(TokenType tt, Token t, ExpTree tL, ExpTree tR) {
  */
 
 int valueIdentifier(List *lp, char **sp) {
+  // printf("valueIdentifier check : Char = %c , List = ", *sp[0]);
+  // printList(*lp);
   if (*lp != NULL && (*lp)->tt == Identifier ) {
     *sp = ((*lp)->t).identifier;
     *lp = (*lp)->next;
@@ -95,33 +97,55 @@ int treePrefixExpression(List *lp, ExpTree *tp) {
 
   // This while-loop will have to create an expression tree tp.
 
-  while ((*lp)->next != NULL){
-    printList(*lp);
+  while (*lp != NULL){
+    // printf("Initial : ");
+    // printList(*lp);
     if ( valueNumber(lp,&w) ) {
       // printf("Found Number : %d\n", (int)w);
       t.number = (int)w;
       *tp = newExpTreeNode(Number, t, NULL, NULL);
     }
-    if ( valueIdentifier(lp,&s) ) {
+    else if ( valueIdentifier(lp,&s) ) {
       t.identifier = s;
       *tp = newExpTreeNode(Identifier, t, NULL, NULL);
-      printf("\nFound variable --> Not numerical!\n");
+      printf("\nFound variable --> Not numerical!\n\n");
       localResult = 2;
     }
-    if (valueOperator(lp, &c)){
+    else if (valueOperator(lp, &c)){ 
       if (treePrefixExpression(lp,&tR)){
         if (treePrefixExpression(lp, &tL)){
           t.symbol = c;
           *tp = newExpTreeNode(Symbol, t, tL, tR);
         }
       } else { /* withuot 'else' the program works fine, but there is a memory leak */
+        printf("\nShould probably not get here?\n\n");
         freeExpTree(tL);
         return 0;
       }
-    }
-  }
 
-  // printf("result = %d\n", localResult);
+      /* tp is now an expressionTree. 
+       * 
+       * Example: (2 + 3 * 4 - 5 / 6)
+       * 
+       * Last iteration (Done recursively)
+       * Number = 6   Operator = NULL
+       * Tree : 6 on top, Left and Right NULL
+       * 
+       * 
+       * 
+       * Last iteration this tree will be 6 on top, Left and Right will be NULL.
+       * After returning (since it's done recursively) the number is 5
+       * 
+       */
+
+    } 
+  }
+  printf("\n");
+  printExpTreeInfix(*tp);
+  printf("\n");
+  printf("Number   when returned : %d\n", (int)w);
+  printf("Operator when returned : %c\n", c);
+  //printf("Returned %d\n\n", localResult);
   return localResult;
 }
 
@@ -211,7 +235,6 @@ void prefExpTrees() {
     tl1 = tl;
     printf("\n-------------Check1-------------\n");
     int valid = treePrefixExpression(&tl1, &t);
-    tl1 = tl1->next;
     printf("-------------Check2-------------\n");
     printf("valid = %d", valid);
     if ( valid > 0 && tl1 == NULL ) { 
