@@ -285,13 +285,9 @@ int giveCorrectValue(int inputA, int inputB, int checkValue){
 
 // This function makes a copy of the given Expression Tree
 ExpTree copyExpTree(ExpTree tree){
-  ExpTree copyLeft, copyRight;
-  if (tree->left == NULL && tree->right == NULL){
+  if (tree->left == NULL && tree->right == NULL)
     return tree;
-  }
-  copyLeft = copyExpTree(tree->left);
-  copyRight = copyExpTree(tree->right);
-  return newExpTreeNode(tree->tt, tree->t, copyLeft, copyRight);
+  return newExpTreeNode(tree->tt, tree->t, copyExpTree(tree->left), copyExpTree(tree->right));
 }
 
 /* The function Simplify prepares the Expression Tree according to the rules:
@@ -416,8 +412,7 @@ ExpTree differentiate(ExpTree tree) {
 void prefExpTrees() {
   char *ar;
   List tl, tl1;  
-  ExpTree t = NULL; 
-  ExpTree copy = NULL;
+  ExpTree t = NULL;
   printf("give an expression: ");
   ar = readInput();
   while (ar[0] != '!') {
