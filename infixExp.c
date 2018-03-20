@@ -282,24 +282,9 @@ int giveCorrectValue(int inputA, int inputB, int checkValue){
   return (inputA == checkValue) ? inputB : inputA;
 }
 
-
-/* The function Simplify prepares the Expression Tree for taking its Derivative according to the rules:
-   0∗E =================
-   E∗0  =================
-   are simplified to 0;
-   
-   
-   0+E ================= 
-   E+0 ================= 
-   E−0 
-   1∗E ================= 
-   E∗1 =================
-   E/1 =================
-   are simplified to E.
-
-   @@@@@@@@@@@ Currently not taking in consideration that E might also be a variable!!! @@@@@@@@@@@
-   */
-
+/* The function Simplify prepares the Expression Tree according to the rules:
+   0∗E and E∗0 are simplified to 0;
+   0+E, E+0, E−0, 1∗E, E∗1 and E/1 are simplified to E.   */
 ExpTree simplify(ExpTree tree){
   // Should go through the entire tree recursively, applying the rules if possible.
   // Start at the bottom of the tree (again);
@@ -362,9 +347,6 @@ ExpTree simplify(ExpTree tree){
   return newExpTreeNode(tree->tt, tree->t, newLeft, newRight);
 }
 
-
-
-
 /* the function prefExpressionExpTrees performs a dialogue with the user and tries
  * to recognize the input as a prefix expression. When it is a numerical prefix 
  * expression, its value is computed and printed.
@@ -374,7 +356,6 @@ void prefExpTrees() {
   char *ar;
   List tl, tl1;  
   ExpTree t = NULL; 
-  ExpTree x = NULL;
   printf("give an expression: ");
   ar = readInput();
   while (ar[0] != '!') {
@@ -391,10 +372,10 @@ void prefExpTrees() {
       printf("in infix notation: ");
       printExpTreeInfix(t);
       printf("\n-------------Check1-------------\n");
-      x = simplify(t);
+      t = simplify(t);
       printf("\n-------------Check2-------------\n");
       printf("Simplified Tree : ");
-      printExpTreeInfix(x);
+      printExpTreeInfix(t);
       printf("\n\n");
       if ( isNumerical(t) ) {
         printf("the value is %g\n",valueExpTree(t));
