@@ -19,6 +19,7 @@
 #include "scanner.h"
 #include "recognizeExp.h"
 #include "infixExp.h"
+#include <string.h>
 
 /* The function newExpTreeNode creates a new node for an expression tree.
  */
@@ -299,13 +300,13 @@ ExpTree copyExpTree(ExpTree tree){
 ExpTree simplify(ExpTree tree){
   // Should go through the entire tree recursively, applying the rules if possible.
   // Start at the bottom of the tree (again);
-  ExpTree newLeft = (*tree).left;
-  ExpTree newRight = (*tree).right;
+  ExpTree newLeft = tree->left;
+  ExpTree newRight = tree->right;
 
   if ((*tree).left != NULL && (*tree).right != NULL){
     // Not at the bottom yet. Go down recursively.
-    newRight = simplify((*tree).right);
-    newLeft = simplify((*tree).left);
+    newRight = simplify(tree->right);
+    newLeft = simplify(tree->left);
   } else {
     // Currently at the bottom Node in the tree.
     return tree;
@@ -358,6 +359,61 @@ ExpTree simplify(ExpTree tree){
   return newExpTreeNode(tree->tt, tree->t, newLeft, newRight);
 }
 
+ExpTree derivative(ExpTree tree){
+  char x[2] = "x";
+  ExpTree newLeft, newRight, newLeftParent, newRightParent;
+  newLeft = newRight = newLeftParent = newRightParent = NULL;
+  ExpTree E1, E2;
+  Token t, mulToken, divToken;
+  mulToken.symbol = '*';
+  divToken.symbol = '/';
+  if ((*tree).left == NULL && (*tree).right == NULL){
+      return tree;
+  }
+
+switch (tree->tt) {
+  case Symbol:
+    switch ((tree->t).symbol) {
+
+      case '/':
+//       ( d(E1) * E2  -  E1 * d(E2) ) / E2*E2
+        E1 = copyExpTree(tree->left);
+        E2 = copyExpTree(tree->right);
+        t.symbol = '-';
+
+        newLeft = newExpTreeNode(Symbol, mulToken, derivative(tree->left), E2);
+        newRight = newExpTreeNode(Symbol, mulToken, E1, derivative(tree->right));
+        newLeftParent = newExpTreeNode(Symbol, t, newLeft, newRight);
+        newRightParent = newExpTreeNode(Symbol, mulToken, E2, E2);
+        return newExpTreeNode(Symbol, divToken, newLeftParent, newRightParent);
+      case '*':
+//        d(E1) * E2  +  E1 * d(E2)
+        E1 = copyExpTree(tree->left);
+        E2 = copyExpTree(tree->right);
+        t.symbol = '+';
+        newLeft = newExpTreeNode(Symbol, mulToken, derivative(tree->left), E2);
+        newRight = newExpTreeNode(Symbol, mulToken, E1, derivative(tree->right));
+        return newExpTreeNode(Symbol, t, newLeft, newRight);
+      case '-':
+//      If this does not work use derivative(copyOf)
+        return newExpTreeNode(Symbol, tree->t, derivative(tree->left), derivative(tree->right));
+      case '+':
+        return newExpTreeNode(Symbol, tree->t, derivative(tree->left), derivative(tree->right));
+    }
+    break;
+  case Number:
+    t.number = 0;
+    return newExpTreeNode(Number, t, NULL, NULL);
+  case Identifier:
+    (strcmp(tree->t.identifier, x) == 0) ? t.number = 1 : t.number = 0;
+    return newExpTreeNode(Number, t, NULL, NULL);
+
+
+// Probably will never reach this sadly
+  free(x);
+}
+
+}
 /* the function prefExpressionExpTrees performs a dialogue with the user and tries
  * to recognize the input as a prefix expression. When it is a numerical prefix 
  * expression, its value is computed and printed.
