@@ -162,8 +162,7 @@ int termNode(List *lp, ExpTree *tree, int count){
     if(factorNode(lp, &rightTree)){
       newToken.symbol = operator;
       *tree = newExpTreeNode(Symbol,newToken,*tree,rightTree);
-//    check if next operator is /or*, if it is call termNode(with counter++, and tree)
-//    This check might not work properly.
+//    check if next operator is /or*, if it is; call termNode(with counter++, and tree)
       if(*lp != NULL && isDivMultOperator((*lp)->t.symbol)){
         // printList(*lp);
         termNode(lp, tree, -1);
@@ -198,8 +197,7 @@ int expressionNode(List *lp, ExpTree *tree, int count){
     if(termNode(lp, &rightTree, 0)){
       newToken.symbol = operator;
       *tree = newExpTreeNode(Symbol,newToken,*tree,rightTree);
-//    check if next operator is /or*, if it is call termNode(with counter++, and tree)
-//    This check might not work properly.
+//    check if next operator is +or-, if it is; call termNode(with counter++, and tree)
       if(*lp != NULL && isPlusMinOperator((*lp)->t.symbol)){
         expressionNode(lp, tree, -1);
       }
@@ -326,34 +324,34 @@ ExpTree simplify(ExpTree tree){
         printf("List = ");
         printExpTreeInfix(tree);
         printf("\n");
-        printf("Left = %d , right = %d\n", ((*tree).left)->t.number, ((*tree).right)->t.number);
-        if (((*tree).right)->t.number == 0 || ((*tree).left)->t.number == 0){
+        printf("Left = %d , right = %d\n", (tree->left)->t.number, (tree->right)->t.number);
+        if ((tree->right)->t.number == 0 || (tree->left)->t.number == 0){
           t.number = 0;
           return newExpTreeNode(Number, t, NULL, NULL);
-        } else if (((*tree).left)->t.number == 1 || ((*tree).right)->t.number == 1){
-          t.number = giveCorrectValue(((*tree).left)->t.number, ((*tree).right)->t.number, 1);
-          return newExpTreeNode(Number, t, NULL, NULL);
+        } else if ((tree->left)->t.number == 1){
+          return newExpTreeNode((tree->right)->tt, (tree->right)->t, NULL, NULL);
+        } else if ((tree->right)->t.number == 1){
+          return newExpTreeNode((tree->left)->tt, (tree->left)->t, NULL, NULL);
         }
         break;
       
       case '/':
-        if (((*tree).right)->t.number == 1){
-          t.number = ((*tree).left)->t.number;
-          return newExpTreeNode(Number, t, NULL, NULL);
+        if ((tree->right)->t.number == 1){
+          return newExpTreeNode((tree->left)->tt, (tree->left)->t, NULL, NULL);
         }
         break;
       
       case '+':
-        if (((*tree).left)->t.number == 0 || ((*tree).right)->t.number == 0){
-          t.number = giveCorrectValue(((*tree).left)->t.number, ((*tree).right)->t.number, 0);
-          return newExpTreeNode(Number, t, NULL, NULL);
+        if ((tree->left)->t.number == 0){
+          return newExpTreeNode((tree->right)->tt, (tree->right)->t, NULL, NULL);
+        } else if ((tree->right)->t.number == 0){
+          return newExpTreeNode((tree->left)->tt, (tree->left)->t, NULL, NULL);
         }
         break;
       
       case '-':
         if (((*tree).right)->t.number == 0){
-          t.number = ((*tree).left)->t.number;
-          return newExpTreeNode(Number, t, NULL, NULL);
+          return newExpTreeNode((tree->left)->tt, (tree->left)->t, NULL, NULL);
         }
         break;
       
@@ -361,7 +359,7 @@ ExpTree simplify(ExpTree tree){
         abort();
     }
   }
-  return newExpTreeNode((*tree).tt, (*tree).t, newLeft, newRight);
+  return newExpTreeNode(tree->tt, tree->t, newLeft, newRight);
 }
 
 
