@@ -282,6 +282,17 @@ int giveCorrectValue(int inputA, int inputB, int checkValue){
   return (inputA == checkValue) ? inputB : inputA;
 }
 
+// This function makes a copy of the given Expression Tree
+ExpTree copyExpTree(ExpTree tree){
+  ExpTree copyLeft, copyRight;
+  if (tree->left == NULL && tree->right == NULL){
+    return tree;
+  }
+  copyLeft = copyExpTree(tree->left);
+  copyRight = copyExpTree(tree->right);
+  return newExpTreeNode(tree->tt, tree->t, copyLeft, copyRight);
+}
+
 /* The function Simplify prepares the Expression Tree according to the rules:
    0∗E and E∗0 are simplified to 0;
    0+E, E+0, E−0, 1∗E, E∗1 and E/1 are simplified to E.   */
@@ -356,6 +367,7 @@ void prefExpTrees() {
   char *ar;
   List tl, tl1;  
   ExpTree t = NULL; 
+  ExpTree copy = NULL;
   printf("give an expression: ");
   ar = readInput();
   while (ar[0] != '!') {
@@ -373,9 +385,13 @@ void prefExpTrees() {
       printExpTreeInfix(t);
       printf("\n-------------Check1-------------\n");
       t = simplify(t);
+      copy = copyExpTree(t);
       printf("\n-------------Check2-------------\n");
       printf("Simplified Tree : ");
+      printf("\n");
       printExpTreeInfix(t);
+      printf("\n");
+      printExpTreeInfix(copy);
       printf("\n\n");
       if ( isNumerical(t) ) {
         printf("the value is %g\n",valueExpTree(t));
