@@ -89,7 +89,7 @@ int acceptAdditionSubstraction(List *lp, char *cp){
   return 0;  
 }
 
-/* De functie freeExpTree frees the memory of the nodes in the expression tree.
+/* De function freeExpTree frees the memory of the nodes in the expression tree.
  * Observe that here, unlike in freeList, the strings in indentifier nodes
  * are not freed. The reason is that the function newExpTree does not allocate
  * memory for strings in nodes, but only a pointer to a string in a node
