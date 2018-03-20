@@ -22,7 +22,7 @@
 #include "scanner.h"
 #include "recognizeExp.h"
 #include <string.h>
-#include "prefixExp.h"
+#include "infixExp.h"
 
 void solve(List *lp);
 
